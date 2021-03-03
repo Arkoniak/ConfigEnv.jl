@@ -43,7 +43,7 @@ end
 `config` reads your .env file, parse the content, stores it to `ENV`,
 and finally return a Dict with the content.
 """
-function config( path=".env", override = false)
+function config( path, override = true)
     if (isfile(path))
         parsed = parse(read(path, String))
 
