@@ -1,6 +1,6 @@
-The DotEnv.jl package is licensed under the MIT "Expat" License:
+The DotEnv2.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2018: Valentin Mari.
+> Copyright (c) 2021: Oskin Andrey.
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal
