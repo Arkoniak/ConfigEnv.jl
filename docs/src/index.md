@@ -2,7 +2,7 @@
 CurrentModule = DotEnv2
 ```
 
-# ZulipReminderBot
+# DotEnv2
 
 ```@index
 ```
