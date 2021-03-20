@@ -1,7 +1,7 @@
-name = "DotEnv"
-uuid = "4dc1fcf4-5e3b-5448-94ab-0c38ec0385c1"
-authors = ["Valentín Mari"]
-version = "0.3.0"
+name = "DotEnv2"
+uuid = "e40d7179-d0e1-45c1-8aca-56c47694e472"
+authors = ["Andrey Oskin <skoffer@arkoniak.com>"]
+version = "0.1.0"
 
 [deps]
 
