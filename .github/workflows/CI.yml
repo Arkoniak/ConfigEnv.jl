@@ -54,7 +54,7 @@ jobs:
           julia --project=docs -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.add(PackageSpec(url="https://github.com/Arkoniak/ConfigEnv.jl", rev="repo_url"));
+            Pkg.add(PackageSpec(url="https://github.com/Arkoniak/Documenter.jl", rev="repo_url"));
             Pkg.instantiate()'
       - run: |
           julia --project=docs -e '
