@@ -1,26 +1,18 @@
-# DotEnv2.jl
+# ConfigEnv
 
-|                                                                                                **Documentation**                                                                                                |                                                                                                                                        **Build Status**                                                                                                                                        |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Arkoniak.github.io/DotEnv2.jl/stable)[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Arkoniak.github.io/DotEnv2.jl/dev) |                   [![Build](https://github.com/Arkoniak/DotEnv2.jl/workflows/CI/badge.svg)](https://github.com/Arkoniak/DotEnv2.jl/actions)[![Coverage](https://codecov.io/gh/Arkoniak/DotEnv2.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Arkoniak/DotEnv2.jl)                   |
+|                                                                                                  **Documentation**                                                                                                  |                                                                                                                          **Build Status**                                                                                                                          |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Arkoniak.github.io/ConfigEnv.jl/stable)[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Arkoniak.github.io/ConfigEnv.jl/dev) | [![Build](https://github.com/Arkoniak/ConfigEnv.jl/workflows/CI/badge.svg)](https://github.com/Arkoniak/ConfigEnv.jl/actions)[![Coverage](https://codecov.io/gh/Arkoniak/ConfigEnv.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Arkoniak/ConfigEnv.jl) |
 
-This package is a fork of [DotEnv.jl](https://github.com/vmari/DotEnv.jl).
+`ConfigEnv.jl` is an environment configuration package that loads environment variables from a `.env` file into [`ENV`](https://docs.julialang.org/en/latest/manual/environment-variables/) in the same manner as [python-dotenv](https://github.com/theskumar/python-dotenv) library.
 
-DotEnv2.jl is a zero-dependency package that loads environment variables from a `.env` file into [`ENV`](https://docs.julialang.org/en/latest/manual/environment-variables/). Storing configuration in the environment is based on [The Twelve-Factor App](http://12factor.net/config) methodology.
-
-## Install
+## Installation
 
 ```julia
-Pkg.add("DotEnv2")
+Pkg.add("ConfigEnv")
 ```
 
 ## Usage
-
-```julia
-using DotEnv2
-DotEnv2.config()
-```
-
 Create a `.env` file in your project. You can add environment-specific variables using the rule `NAME=VALUE`.
 For example:
 
@@ -31,6 +23,14 @@ DB_USER=john
 DB_PASS=42
 ```
 
+After that you can use it in your application
+
+```julia
+using ConfigEnv
+
+dotenv() # loads environment variables from .env
+```
+
 In this way, `ENV` obtain both, the keys and the values you set in your `.env` file.
 
 ```julia
@@ -38,19 +38,21 @@ ENV["DB_PASS"]
 "42"
 ```
 
-## Config
+## Configuration
 
-`config` reads your .env file, parse the content, stores it to 
+Main command is `dotenv` which reads your .env file, parse the content, stores it to 
 [`ENV`](https://docs.julialang.org/en/latest/manual/environment-variables/),
 and finally return a `EnvProxyDict` with the content.  
 
 ```julia
-import DotEnv2
+import ConfigEnv
 
-cfg = DotEnv2.config()
+cfg = dotenv()
 
 println(cfg)
 ```
+
+`EnvProxyDict` acts as a proxy to `ENV` dictionary, if `key` is not found in `EnvProxyDict` it will try to return value from `ENV`.
 
 ### Options
 
@@ -58,24 +60,24 @@ println(cfg)
 
 Default: `.env`
 
-You can specify a custom path for your .env file.
+You can specify a custom path for your `.env` file.
 
 ```julia
-using DotEnv2
-DotEnv2.config(path = "custom.env")
+using ConfigEnv
+
+dotenv(path = "custom.env")
 ```
 
 ## Manual Parsing
 
-`DotEnv.parse` accepts a String or an IOBuffer (Any value that can be converted into String), and it will return
-a Dict with the parsed keys and values.
+`ConfigEnv.parse` accepts a `String` or an `IOBuffer`, and it will return a `Dict` with the parsed keys and values.
 
 ```julia
-import DotEnv2
+import ConfigEnv
 
 buff = IOBuffer("BASIC=basic")
-cfg = DotEnv2.parse(buff) # will return a Dict
-println(config) # Dict("BASIC"=>"basic")
+cfg = ConfigEnv.parse(buff) # will return a Dict
+println(cfg) # Dict("BASIC"=>"basic")
 ```
 
 ### Rules
@@ -98,13 +100,7 @@ line")
 - previous `ENV` environment variables are replaced. If you want to keep original version of `ENV` use:
 
 ```julia
-using DotEnv2
+using ConfigEnv
 
-cfg = DotEnv2.config(".env.override", override = false)
+cfg = dotenv(override = false)
 ```
-
-## Note about credits and License
-
-We want to thank @motdotla. Our code is mostly based on [his repo](https://github.com/motdotla/dotenv)
-
-We want to thank @vmari for the original code of the [DotEnv.jl](https://github.com/vmari/DotEnv.jl). Original license can be found [here](https://github.com/vmari/DotEnv.jl/blob/master/LICENSE.md)

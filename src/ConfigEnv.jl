@@ -1,6 +1,8 @@
-module DotEnv2
+module ConfigEnv
 
 import Base: getindex, get, isempty
+
+export dotenv
 
 struct EnvProxyDict
     dict::Dict{String, String}
@@ -11,7 +13,7 @@ get(ed::EnvProxyDict, key, default) = get(ed.dict, key, get(ENV, key, default))
 isempty(ed::EnvProxyDict) = isempty(ed.dict)
 
 """
-`DotEnv2.parse` accepts a String or an IOBuffer (any value that
+`ConfigEnv.parse` accepts a String or an IOBuffer (any value that
  can be converted into String), and it return a Dict with
  the parsed keys and values.
 """
@@ -40,17 +42,15 @@ end
 
 
 """
-    config(path, override = true)
-    config(; path = ".env", override = true)
-    load(path, override = true)
-    load(; path = ".env", override = true)
+    dotenv(path, override = true)
+    dotenv(; path = ".env", override = true)
 
-`config` or `load` reads your `path` .env file, parse the content, stores it to `ENV`,
+`dotenv` reads your `path` .env file, parse the content, stores it to `ENV`,
 and finally return a `EnvProxyDict` with the content. By default if key already exists in 
 `ENV` it is overriden with the values in .env file. This behaviour can be changed by 
 setting `override` flag to `false`.
 """
-function config(path, override = true)
+function dotenv(path, override = true)
     if (isfile(path))
         parsed = parse(read(path, String))
 
@@ -66,8 +66,6 @@ function config(path, override = true)
     end
 end
 
-config(;path=".env", override = true) = config(path, override)
-
-const load = config
+dotenv(;path=".env", override = true) = config(path, override)
 
 end

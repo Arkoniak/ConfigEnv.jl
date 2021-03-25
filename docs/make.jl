@@ -1,17 +1,17 @@
-using DotEnv2
+using ConfigEnv
 using Documenter
 
-DocMeta.setdocmeta!(DotEnv2, :DocTestSetup, :(using DotEnv2); recursive=true)
+DocMeta.setdocmeta!(ConfigEnv, :DocTestSetup, :(using ConfigEnv); recursive=true)
 
 makedocs(;
-    modules=[DotEnv2],
+    modules=[ConfigEnv],
     authors="Andrey Oskin",
-    repo="https://github.com/Arkoniak/DotEnv2.jl/blob/{commit}{path}#{line}",
-    sitename="DotEnv2.jl",
+    repo="https://github.com/Arkoniak/ConfigEnv.jl/blob/{commit}{path}#{line}",
+    sitename="ConfigEnv.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://Arkoniak.github.io/DotEnv2.jl",
-        siteurl="https://github.com/Arkoniak/DotEnv2.jl",
+        canonical="https://Arkoniak.github.io/ConfigEnv.jl",
+        siteurl="https://github.com/Arkoniak/ConfigEnv.jl",
         assets=String[],
     ),
     pages=[
@@ -20,5 +20,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/Arkoniak/DotEnv2.jl",
+    repo="github.com/Arkoniak/ConfigEnv.jl",
 )

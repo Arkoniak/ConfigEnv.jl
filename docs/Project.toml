@@ -1,3 +1,3 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-DotEnv2 = "e40d7179-d0e1-45c1-8aca-56c47694e472"
+ConfigEnv = "01234589-554d-41b7-ae5c-7b6ee2db6796"

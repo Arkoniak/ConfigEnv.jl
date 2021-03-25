@@ -1,12 +1,12 @@
 ```@meta
-CurrentModule = DotEnv2
+CurrentModule = ConfigEnv
 ```
 
-# DotEnv2
+# ConfigEnv
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [DotEnv2]
+Modules = [ConfigEnv]
 ```
