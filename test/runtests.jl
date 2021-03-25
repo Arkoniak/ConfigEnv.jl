@@ -24,7 +24,7 @@ ENV["USER"] = initial_value
     # iobuffer, string, file
     @test ConfigEnv.parse(str) == Dict("BASIC"=>"basic")
     @test ConfigEnv.parse(read(file)) == Dict("CUSTOMVAL123"=>"yes","USER"=>"replaced value")
-    @test ConfigEnv.config(file).dict == Dict("CUSTOMVAL123"=>"yes","USER"=>"replaced value")
+    @test dotenv(file).dict == Dict("CUSTOMVAL123"=>"yes","USER"=>"replaced value")
 
     @test isempty(dotenv("inexistentfile.env"))
 
