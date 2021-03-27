@@ -8,8 +8,18 @@
 
 ## Installation
 
+`ConfigEnv.jl` is a registered package, so it can be installed with
+
 ```julia
-Pkg.add("ConfigEnv")
+julia> Pkg.add("ConfigEnv")
+```
+
+or
+
+```julia
+# switch to pkg mode
+julia> ] 
+v1.6> add ConfigEnv
 ```
 
 ## Usage
@@ -19,8 +29,8 @@ For example:
 ```dosini
 #.env file
 DB_HOST=127.0.0.1
-DB_USER=john
-DB_PASS=42
+DB_USER=foo
+DB_PASS=123456
 ```
 
 After that you can use it in your application
@@ -31,28 +41,38 @@ using ConfigEnv
 dotenv() # loads environment variables from .env
 ```
 
-In this way, `ENV` obtain both, the keys and the values you set in your `.env` file.
+This way `ENV` obtains key values pairs you set in your `.env` file.
 
 ```julia
-ENV["DB_PASS"]
-"42"
+julia> ENV["DB_PASS"]
+"123456"
 ```
 
 ## Configuration
 
 Main command is `dotenv` which reads your .env file, parse the content, stores it to 
 [`ENV`](https://docs.julialang.org/en/latest/manual/environment-variables/),
-and finally return a `EnvProxyDict` with the content.  
+and finally return a `EnvProxyDict`.
 
 ```julia
-import ConfigEnv
+julia> cfg = dotenv()
 
-cfg = dotenv()
-
-println(cfg)
+julia> println(cfg)
+ConfigEnv.EnvProxyDict(Dict("FOO" => "BAR"))
 ```
 
 `EnvProxyDict` acts as a proxy to `ENV` dictionary, if `key` is not found in `EnvProxyDict` it will try to return value from `ENV`.
+
+```julia
+julia> ENV["XYZ"] = "ABC"
+julia> cfg = dotenv()
+julia> println(cfg)
+ConfigEnv.EnvProxyDict(Dict("FOO" => "BAR"))
+julia> cfg["FOO"]
+"BAR"
+julia> cfg["XYZ"]
+"ABC"
+```
 
 ### Options
 
@@ -61,8 +81,6 @@ println(cfg)
 By default `dotenv` use local `.env` file, but you can specify a custom path for your `.env` file.
 
 ```julia
-using ConfigEnv
-
 dotenv("custom.env") # Loads `custom.env` file
 ```
 
@@ -89,8 +107,6 @@ if duplicate keys encountered, then values from the rightmost dictionary is used
 Take note that `dotenv` function replace previous `ENV` environment variables by default. If you want to keep original version of `ENV` you should use `overwrite` argument
 
 ```julia
-using ConfigEnv
-
 ENV["FOO"] = "BAR"
 cfg = dotenv(overwrite = false)
 
@@ -101,8 +117,6 @@ ENV["FOO"] # "BAR"
 Since many dotenv packages uses another default setting when environment is not overwritten, function `dotenvx` was introduced. This function is just an alias to `dotenv(overwrite = false)`, but it can be more convenient to use.
 
 ```julia
-using ConfigEnv
-
 ENV["FOO"] = "BAR"
 cfg = dotenvx() # Same as `dotenv(overwrite = false)`
 
