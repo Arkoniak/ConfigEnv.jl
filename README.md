@@ -56,51 +56,74 @@ println(cfg)
 
 ### Options
 
-#### Path
+#### Paths
 
-Default: `.env`
-
-You can specify a custom path for your `.env` file.
+By default `dotenv` use local `.env` file, but you can specify a custom path for your `.env` file.
 
 ```julia
 using ConfigEnv
 
-dotenv(path = "custom.env")
+dotenv("custom.env") # Loads `custom.env` file
 ```
 
-## Manual Parsing
-
-`ConfigEnv.parse` accepts a `String` or an `IOBuffer`, and it will return a `Dict` with the parsed keys and values.
+You can supply more than one configuration file
 
 ```julia
-import ConfigEnv
+dotenv("custom1.env", "custom2.env")
+```
 
-buff = IOBuffer("BASIC=basic")
-cfg = ConfigEnv.parse(buff) # will return a Dict
-println(cfg) # Dict("BASIC"=>"basic")
+Alternatively, you can combine different configuration files together using `merge` function or multiplication sign `*`
+
+```julia
+cfg1 = dotenv("custom1.env")
+cfg2 = dotenv("custom2.env")
+
+cfg = merge(cfg1, cfg2)
+
+# or equivalently
+
+cfg = cfg1 * cfg2
+```
+if duplicate keys encountered, then values from the rightmost dictionary is used.
+
+Take note that `dotenv` function replace previous `ENV` environment variables by default. If you want to keep original version of `ENV` you should use `overwrite` argument
+
+```julia
+using ConfigEnv
+
+ENV["FOO"] = "BAR"
+cfg = dotenv(overwrite = false)
+
+cfg["FOO"] # "BAZ"
+ENV["FOO"] # "BAR"
+```
+
+Since many dotenv packages uses another default setting when environment is not overwritten, function `dotenvx` was introduced. This function is just an alias to `dotenv(overwrite = false)`, but it can be more convenient to use.
+
+```julia
+using ConfigEnv
+
+ENV["FOO"] = "BAR"
+cfg = dotenvx() # Same as `dotenv(overwrite = false)`
+
+cfg["FOO"] # "BAZ"
+ENV["FOO"] # "BAR"
 ```
 
 ### Rules
 
 You can write your `.env` file using the following rules:
 
-- `BASIC=basic` becomes `Dict("BASIC"=>"basic")`
+- `FOO = BAR` becomes `ENV["FOO"] = "BAR"`
 - empty lines are skipped
 - `#` are comments
-- empty content is treated as an empty string (`EMPTY=` -> `Dict("EMPTY"=>"")`)
-- external single and double quotes are removed (`SINGLE_QUOTE='quoted'` -> `Dict("SINGLE_QUOTE"=>"quoted")`)
-- inside double quotes, new lines are expanded (`MULTILINE="new\nline"` ->
-```
-Dict("MULTILINE"=>"new
-line")
-```
-- inner quotes are maintained (like JSON) (`JSON={"foo": "bar"}` -> `Dict("JSON"=>"{\"foo\": \"bar\"}")"`)
-- extra spaces are removed from both ends of the value (`FOO="  some value  "` -> `Dict("FOO"=>"some value")`)
-
-- previous `ENV` environment variables are replaced. If you want to keep original version of `ENV` use:
-
-```julia
-using ConfigEnv
-
-cfg = dotenv(override = false)
-```
+- empty content is treated as an empty string, i.e. `EMPTY=` becomes `ENV["EMPTY"] = ""`
+- external single and double quotes are removed, i.e. `SINGLE_QUOTE='quoted'` becomes `ENV["SINGLE_QUOTE"] = "quoted"`
+- inside double quotes, new lines are expanded, i.e.
+  ```
+  MULTILINE = "new
+  line"
+  ```
+  becomes `ENV["MULTILINE"] = "new\nline"`
+- inner quotes are automatically escaped, i.e. `JSON={"foo": "bar"}` becomes `ENV["JSON"] = "{\"foo\": \"bar\"}"`
+- extra spaces are removed from both ends of the value, i.e. `FOO="  some value  "` becomes `ENV["FOO"] = "some value"`
