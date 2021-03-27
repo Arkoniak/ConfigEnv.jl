@@ -67,7 +67,7 @@ and finally return a `EnvProxyDict` with the content. If no `path` argument is g
 then value from the rightmost dictionary is used.
 
 By default if key already exists in `ENV` it is overwritten with the values in .env file. 
-This behaviour can be changed by setting `overwrite` flag to `false` or using complementary `dotenvx` function.
+This behaviour can be changed by setting `overwrite` flag to `false` or using dual `dotenvx` function.
 
 Examples
 ========
@@ -121,7 +121,7 @@ and finally return a `EnvProxyDict` with the content. If no `path` argument is g
 then value from the rightmost dictionary is used.
 
 By default if key already exists in `ENV` it is overwritten with the values in .env file. 
-This behaviour can be changed by setting `overwrite` flag to `true` or using complementary `dotenv` function.
+This behaviour can be changed by setting `overwrite` flag to `true` or using dual `dotenv` function.
 
 Examples
 ========
