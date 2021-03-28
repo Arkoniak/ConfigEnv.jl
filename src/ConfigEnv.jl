@@ -80,18 +80,13 @@ USER = john_doe
 # load key-value pairs from ".env", `ENV` duplicate keys are overwritten
 julia> ENV["USER"]
 user1
-julia> cfg = dotenvx()
+julia> cfg = dotenv()
 julia> ENV["FOO"]
 bar
 julia> ENV["USER"]
 john_doe
 julia> cfg["USER"]
 john_doe
-
-# loading multiple files simultaneously
-cfg = dotenv(".env1", ".env2")
-# alternatively
-cfg = dotenv([".env1", ".env2"]...)
 ```
 """
 function dotenv(path = ".env"; overwrite = true)
@@ -141,11 +136,6 @@ julia> ENV["USER"]
 user1
 julia> cfg["USER"]
 john_doe
-
-# loading multiple files simultaneously
-cfg = dotenvx(".env1", ".env2")
-# alternatively
-cfg = dotenvx([".env1", ".env2"]...)
 ```
 """
 dotenvx(paths...; overwrite = false) = dotenv(paths...; overwrite = overwrite)
