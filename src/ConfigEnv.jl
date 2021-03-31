@@ -7,29 +7,67 @@ export dotenv, dotenvx, isresolved, unresolved_keys
 struct EnvProxyDict{T}
     dict::Dict{String, String}
     env::T
-    resolved::Dict{String, Bool}
+    undefined::Vector{String}
+    circular::Vector{String}
 end
-EnvProxyDict(dict) = EnvProxyDict(dict, ENV, Dict{String, Bool}())
-EnvProxyDict(dict, env) = EnvProxyDict(dict, env, Dict{String, Bool}())
+EnvProxyDict(dict) = EnvProxyDict(dict, ENV, String[], String[])
+EnvProxyDict(dict, env) = EnvProxyDict(dict, env, String[], String[])
 
 getindex(ed::EnvProxyDict, key) = get(ed.dict, key, ed.env[key])
 get(ed::EnvProxyDict, key, default) = get(ed.dict, key, get(ed.env, key, default))
 isempty(ed::EnvProxyDict) = isempty(ed.dict)
-Base.:*(epd1::EnvProxyDict, epd2::EnvProxyDict...) = merge(epd1, epd2...)
-function merge(epd1::EnvProxyDict, epd2::EnvProxyDict...) 
+Base.:*(epd1::EnvProxyDict, epd2::EnvProxyDict...) = merge(epd1, epd2...; overwrite = false)
+function imprint(epd::EnvProxyDict, env)
+    for (k, v) in epd.dict
+        env[k] = v
+    end
+end
+
+function merge(epd1::EnvProxyDict, epd2::EnvProxyDict...; overwrite = true) 
     epd = EnvProxyDict(foldl((x, y) -> merge(x, y.dict), epd2; init = epd1.dict), epd1.env)
     resolve!(epd, epd.env)
+    overwrite && imprint(epd, epd.env)
     epd
 end
 
 haskey(ed::EnvProxyDict, key) = haskey(ed.dict, key) || haskey(ed.env, key)
 
-function merge!(epd1::EnvProxyDict, epd2::EnvProxyDict...)
+function merge!(epd1::EnvProxyDict, epd2::EnvProxyDict...; overwrite = true)
     foldl((x, y) -> merge!(x, y.dict), epd2; init = epd1.dict)
     # You shouldn't use different envs during `merge!`. This is undefined behaviour.
     # first dictionary environment can't be changed, cause it can be `ENV`
     resolve!(epd1, epd1.env)
+    overwrite && imprint(epd1, epd1.env)
     return epd1
+end
+
+function isdefin(s, i = 0, lev = 0)
+    i = nextind(s, i)
+    len = ncodeunits(s)
+    mode = 0
+    cnt_brackets = 0
+    while i <= len
+        c = s[i]
+        if c == '$'
+            mode = 1
+        elseif c == '{'
+            if mode == 1
+                return isdefin(s, i, 1)
+            else
+                cnt_brackets += 1
+                mode = 0
+            end
+        elseif c == '}'
+            mode = 0
+            cnt_brackets -= 1
+            lev == 1 && cnt_brackets < 0 && return false
+        else
+            mode = 0
+        end
+        i = nextind(s, i)
+    end
+
+    return true
 end
 
 mutable struct KVNode
@@ -44,16 +82,13 @@ end
 KVNode(k, v) = KVNode(k, v, KVNode[], 0, true, false)
 KVNode(v) = KVNode("", v, KVNode[], 0, false, false)
 isresolved(kvnode::KVNode) = kvnode.isresolved
-isresolved(epd::EnvProxyDict) = all(x -> x[2], pairs(epd.resolved))
+isresolved(epd::EnvProxyDict) = isempty(epd.undefined) && isempty(epd.circular)
 
 function unresolved_keys(edp::EnvProxyDict)
-    res = Pair{String, String}[]
-    for (k, v) in edp.resolved
-        v && continue
-        push!(res, k => edp.dict[k])
-    end
+    undefined = map(k -> k => edp.dict[k], edp.undefined)
+    circular = map(k -> k => edp.dict[k], edp.circular)
 
-    return (; circular = res, undefined = Pair{String, String}[])
+    return (; circular = circular, undefined = undefined)
 end
 
 function destructure!(v::KVNode, stack, knodes, i = 0, env = ENV)
@@ -109,7 +144,9 @@ function destructure!(v::KVNode, stack, knodes, i = 0, env = ENV)
             mode = 0
         end
     
-        i = nextind(val, i)
+        if i <= len 
+            i = nextind(val, i)
+        end
     end
     return i, isvalid
 end
@@ -125,10 +162,15 @@ function resolve!(edp::EnvProxyDict, env = ENV)
 
     resolve!(stack, knodes, env)
 
+    empty!(edp.undefined)
+    empty!(edp.circular)
     for (k, v) in knodes
-        edp.resolved[k] = v.isresolved
-        v.isresolved || continue
         edp.dict[k] = v.value
+        if !v.isresolved
+            push!(edp.circular, k)
+        elseif !isdefin(v.value)
+            push!(edp.undefined, k)
+        end
     end
 
     edp
@@ -168,10 +210,6 @@ function resolve!(stack, knodes, env)
         while !isempty(v.children)
             kid = pop!(v.children)
             recursive_replace!(kid, key, v.value)
-            # @info "" key kid.key kid.value v.value occursin(key, kid.value)
-            # occursin(key, kid.value) || continue
-            # kid.value = replace(kid.value, key => v.value)
-            # @info "" kid.value
             kid.parents_cnt -= 1
             kid.parents_cnt == 0 || continue
             if kid.isfinal
@@ -272,19 +310,19 @@ function dotenv(path = ".env"; overwrite = true, env = ENV)
         parse(path)
     end
 
-    for (k, v) in parsed
+    epd = EnvProxyDict(parsed, env)
+    resolve!(epd, env)
+
+    for (k, v) in epd.dict
         if !haskey(env, k) || overwrite
             env[k] = v
         end
     end
 
-    epd = EnvProxyDict(parsed, env)
-    resolve!(epd, env)
-
     return epd
 end
 
-dotenv(paths...; overwrite = true, env = ENV) = merge!(dotenv.(paths; overwrite = overwrite, env = env)...)
+dotenv(paths...; overwrite = true, env = ENV) = merge!(dotenv.(paths; overwrite = overwrite, env = env)..., overwrite = overwrite)
 
 """
     dotenvx(path1, path2, ...; overwrite = false)
@@ -317,6 +355,6 @@ julia> cfg["USER"]
 john_doe
 ```
 """
-dotenvx(paths...; overwrite = false, env = ENV) = dotenv(paths...; overwrite = overwrite, env)
+dotenvx(paths...; overwrite = false, env = ENV) = dotenv(paths...; overwrite = overwrite, env = env)
 
 end
