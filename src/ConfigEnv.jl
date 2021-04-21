@@ -81,9 +81,21 @@ end
 
 KVNode(k, v) = KVNode(k, v, KVNode[], 0, true, false)
 KVNode(v) = KVNode("", v, KVNode[], 0, false, false)
+
 isresolved(kvnode::KVNode) = kvnode.isresolved
+
+"""
+    isresolved(cfg::EnvProxyDict)
+
+Returns whether templating procedure was successful or not. Templating can be unsuccessful if there are circular dependencies or templated variables do not exist in the environment.
+"""
 isresolved(epd::EnvProxyDict) = isempty(epd.undefined) && isempty(epd.circular)
 
+"""
+    unresolved_keys(cfg::EnvProxyDict)
+
+Returns tuple of `circular` and `undefined` keys, where `circular` are keys which depends on each other and `undefined` are keys, which use variables that do not exist in the environment.
+"""
 function unresolved_keys(edp::EnvProxyDict)
     undefined = map(k -> k => edp.dict[k], edp.undefined)
     circular = map(k -> k => edp.dict[k], edp.circular)
