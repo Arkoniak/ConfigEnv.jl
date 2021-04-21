@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Usage · ConfigEnv.jl</title><link rel="canonical" href="https://Arkoniak.github.io/ConfigEnv.jl/usage/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="https://github.com/Arkoniak/ConfigEnv.jl">ConfigEnv.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Usage</a><ul class="internal"><li><a class="tocitem" href="#Main-commands"><span>Main commands</span></a></li><li><a class="tocitem" href="#Configuration"><span>Configuration</span></a></li><li><a class="tocitem" href="#Overwriting-and-nonoverwriting-functions"><span>Overwriting and nonoverwriting functions</span></a></li><li><a class="tocitem" href="#Merging-multiple-environments"><span>Merging multiple environments</span></a></li><li><a class="tocitem" href="#Templating"><span>Templating</span></a></li><li><a class="tocitem" href="#IO-streaming"><span><code>IO</code> streaming</span></a></li></ul></li><li><a class="tocitem" href="../scenarios/">Examples</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Usage</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Usage</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Arkoniak/ConfigEnv.jl/blob/master/docs/src/usage.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Usage"><a class="docs-heading-anchor" href="#Usage">Usage</a><a id="Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Usage" title="Permalink"></a></h1><h2 id="Main-commands"><a class="docs-heading-anchor" href="#Main-commands">Main commands</a><a id="Main-commands-1"></a><a class="docs-heading-anchor-permalink" href="#Main-commands" title="Permalink"></a></h2><p>Create a <code>.env</code> file in your project. You can add environment-specific variables using the rule <code>NAME=VALUE</code>. For example:</p><pre><code class="nohighlight">#.env file
+USER = foo
+PASSWORD = bar</code></pre><p>Usually it is a good idea to put this file into your <code>.gitignore</code> file, so secrets wouldn&#39;t leak to the public space. After that you can use it in your application</p><pre><code class="language-julia">using ConfigEnv
+
+dotenv() # loads environment variables from .env</code></pre><p>This way <code>ENV</code> obtains key values pairs you set in your <code>.env</code> file.</p><pre><code class="language-julia">julia&gt; ENV[&quot;PASSWORD&quot;]
+&quot;bar&quot;</code></pre><h3 id=".env-definitions"><a class="docs-heading-anchor" href="#.env-definitions"><code>.env</code> definitions</a><a id=".env-definitions-1"></a><a class="docs-heading-anchor-permalink" href="#.env-definitions" title="Permalink"></a></h3><p>Following rules are applied when you are writing <code>.env</code>:</p><ul><li><code>FOO = BAR</code> becomes <code>ENV[&quot;FOO&quot;] = &quot;BAR&quot;</code>;</li><li>empty lines are skipped;</li><li>lines starting with <code>#</code> are comments and ignored during parsing;</li><li>empty content is treated as an empty string, i.e. <code>EMPTY=</code> becomes <code>ENV[&quot;EMPTY&quot;] = &quot;&quot;</code>;</li><li>external single and double quotes are removed, i.e. <code>SINGLE_QUOTE=&#39;quoted&#39;</code> becomes <code>ENV[&quot;SINGLE_QUOTE&quot;] = &quot;quoted&quot;</code>;</li><li>inside double quotes, new lines are expanded, i.e.<pre><code class="nohighlight">MULTILINE = &quot;new
+line&quot;</code></pre>becomes <code>ENV[&quot;MULTILINE&quot;] = &quot;new\nline&quot;</code>;</li><li>inner quotes are automatically escaped, i.e. <code>JSON={&quot;foo&quot;: &quot;bar&quot;}</code> becomes <code>ENV[&quot;JSON&quot;] = &quot;{\&quot;foo\&quot;: \&quot;bar\&quot;}&quot;</code>;</li><li>extra spaces are removed from both ends of the value, i.e. <code>FOO=&quot;  some value  &quot;</code> becomes <code>ENV[&quot;FOO&quot;] = &quot;some value&quot;</code>;</li></ul><h2 id="Configuration"><a class="docs-heading-anchor" href="#Configuration">Configuration</a><a id="Configuration-1"></a><a class="docs-heading-anchor-permalink" href="#Configuration" title="Permalink"></a></h2><p>Main command is <code>dotenv</code> which reads your .env file, parse the content, stores it to  <a href="https://docs.julialang.org/en/latest/manual/environment-variables/"><code>ENV</code></a>, and finally return a <code>EnvProxyDict</code>.</p><pre><code class="language-julia">julia&gt; cfg = dotenv()
+
+julia&gt; println(cfg)
+ConfigEnv.EnvProxyDict(Dict(&quot;FOO&quot; =&gt; &quot;BAR&quot;))</code></pre><p><code>EnvProxyDict</code> acts as a proxy to <code>ENV</code> dictionary, if <code>key</code> is not found in <code>EnvProxyDict</code> it will try to return value from <code>ENV</code>.</p><pre><code class="language-julia">julia&gt; ENV[&quot;XYZ&quot;] = &quot;ABC&quot;
+julia&gt; cfg = dotenv()
+julia&gt; println(cfg)
+ConfigEnv.EnvProxyDict(Dict(&quot;FOO&quot; =&gt; &quot;BAR&quot;))
+julia&gt; cfg[&quot;FOO&quot;]
+&quot;BAR&quot;
+julia&gt; cfg[&quot;XYZ&quot;]
+&quot;ABC&quot;</code></pre><p>By default <code>dotenv</code> use local <code>.env</code> file, but you can specify a custom path for your <code>.env</code> file.</p><pre><code class="language-julia">dotenv(&quot;custom.env&quot;) # Loads `custom.env` file</code></pre><h2 id="Overwriting-and-nonoverwriting-functions"><a class="docs-heading-anchor" href="#Overwriting-and-nonoverwriting-functions">Overwriting and nonoverwriting functions</a><a id="Overwriting-and-nonoverwriting-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Overwriting-and-nonoverwriting-functions" title="Permalink"></a></h2><p>Take note that <code>dotenv</code> function replace previous <code>ENV</code> environment variables by default. If you want to keep original version of <code>ENV</code> you should use <code>overwrite</code> argument</p><pre><code class="language-julia">ENV[&quot;FOO&quot;] = &quot;BAR&quot;
+cfg = dotenv(overwrite = false)
+
+cfg[&quot;FOO&quot;] # &quot;BAZ&quot;
+ENV[&quot;FOO&quot;] # &quot;BAR&quot;</code></pre><p>Alternatively one can use function <code>dotenvx</code>. This function is just an alias to <code>dotenv(overwrite = false)</code>, but sometimes it can be more convenient to use.</p><pre><code class="language-julia">ENV[&quot;FOO&quot;] = &quot;BAR&quot;
+cfg = dotenvx() # Same as `dotenv(overwrite = false)`
+
+cfg[&quot;FOO&quot;] # &quot;BAZ&quot;
+ENV[&quot;FOO&quot;] # &quot;BAR&quot;</code></pre><h2 id="Merging-multiple-environments"><a class="docs-heading-anchor" href="#Merging-multiple-environments">Merging multiple environments</a><a id="Merging-multiple-environments-1"></a><a class="docs-heading-anchor-permalink" href="#Merging-multiple-environments" title="Permalink"></a></h2><p>You can provide more than one configuration file and all of them will be uploaded to <code>ENV</code>.</p><pre><code class="language-julia">dotenv(&quot;custom1.env&quot;, &quot;custom2.env&quot;)</code></pre><p>Alternatively, you can combine different configuration files together using <code>merge</code> function or multiplication sign <code>*</code></p><pre><code class="language-julia">cfg1 = dotenv(&quot;custom1.env&quot;)
+cfg2 = dotenv(&quot;custom2.env&quot;)
+
+cfg = merge(cfg1, cfg2)
+
+# or equivalently
+
+cfg = cfg1 * cfg2</code></pre><p>Take note that <code>merge</code> not only combines dictionaries together, but also apply resulting dictionary to <code>ENV</code>.</p><p>if duplicate keys encountered, then values from the rightmost dictionary is used.</p><h2 id="Templating"><a class="docs-heading-anchor" href="#Templating">Templating</a><a id="Templating-1"></a><a class="docs-heading-anchor-permalink" href="#Templating" title="Permalink"></a></h2><p>One can use templates in <code>.env</code> files, with the help of <code>${...}</code> construction. For example, this file</p><pre><code class="nohighlight"># .env
+FOO = ZZZ
+BAR = ${FOO}</code></pre><p>is converted to</p><pre><code class="language-julia">julia&gt; dotenv();
+julia&gt; ENV[&quot;FOO&quot;]
+&quot;ZZZ&quot;
+
+julia&gt; ENV[&quot;BAR&quot;]
+&quot;ZZZ&quot;</code></pre><p>Usage of <code>{}</code> is mandatory, single <code>$</code> is ignored, i.e.</p><pre><code class="nohighlight"># .env
+FOO = ZZZ
+BAR = $FOO</code></pre><pre><code class="language-julia">julia&gt; dotenv();
+julia&gt; ENV[&quot;FOO&quot;]
+&quot;ZZZ&quot;
+
+julia&gt; ENV[&quot;BAR&quot;]
+&quot;\$FOO&quot;</code></pre><p>Together with environments merging described in previous paragraph, templating can be very powerful tool to setup your <code>ENV</code> in a very flexible way. For example, one can set global parameters in a <code>.env</code> located in a root of the application and combine it with individual files located deeper inside the application file tree.</p><p>You can diagnose problems like unresolved templates and circular dependencies with <code>isresolved</code> and <code>unresolved_keys</code>. For example</p><pre><code class="nohighlight"># .env
+FOO = ${BAR}
+BAR = ${FOO}
+ZZZ = ${YYY}</code></pre><pre><code class="language-julia">julia&gt; cfg = dotenv();
+julia&gt; isresolved(cfg)
+false
+
+julia&gt; unresolved_keys(cfg).circular
+2-element Vector{Pair{String, String}}:
+ &quot;FOO&quot; =&gt; &quot;\${BAR}&quot;
+ &quot;BAR&quot; =&gt; &quot;\${FOO}&quot;
+
+julia&gt; unresolved_keys(cfg).undefined
+1-element Vector{Pair{String, String}}:
+ &quot;ZZZ&quot; =&gt; &quot;\${YYY}&quot;</code></pre><h3 id="Nested-templates"><a class="docs-heading-anchor" href="#Nested-templates">Nested templates</a><a id="Nested-templates-1"></a><a class="docs-heading-anchor-permalink" href="#Nested-templates" title="Permalink"></a></h3><p>One can also use nested interpolations of an arbitrary depth to build more complicated environment constructions.</p><pre><code class="nohighlight"># .env
+USER_1 = FOO
+USER_2 = BAR
+N = 1
+USER = ${USER_${N}}</code></pre><p>is translated to the following config</p><pre><code class="language-julia">julia&gt; dotenv();
+julia&gt; ENV[&quot;USER&quot;]
+&quot;FOO&quot;</code></pre><h2 id="IO-streaming"><a class="docs-heading-anchor" href="#IO-streaming"><code>IO</code> streaming</a><a id="IO-streaming-1"></a><a class="docs-heading-anchor-permalink" href="#IO-streaming" title="Permalink"></a></h2><p><code>dotenv</code> function supports <code>IO</code> objects, so one can download configuration from net if needed or read it any other way.</p><pre><code class="language-julia">using ConfigEnv
+using HTTP
+
+cfg = HTTP.get(&quot;https://raw.githubusercontent.com/Arkoniak/ConfigEnv.jl/master/test/.env&quot;) |&gt; x -&gt; IOBuffer(x.body) |&gt; dotenv
+
+cfg[&quot;QWERTY&quot;] # &quot;ZXC&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../scenarios/">Examples »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 21 April 2021 12:46">Wednesday 21 April 2021</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
