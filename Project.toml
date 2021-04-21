@@ -1,7 +1,7 @@
 name = "ConfigEnv"
 uuid = "01234589-554d-41b7-ae5c-7b6ee2db6796"
 authors = ["Andrey Oskin <skoffer@arkoniak.com>"]
-version = "0.2.1"
+version = "1.0.0"
 
 [deps]
 
