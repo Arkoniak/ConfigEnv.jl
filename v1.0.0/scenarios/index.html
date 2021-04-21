@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · ConfigEnv.jl</title><link rel="canonical" href="https://Arkoniak.github.io/ConfigEnv.jl/scenarios/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="https://github.com/Arkoniak/ConfigEnv.jl">ConfigEnv.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../usage/">Usage</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Simple-ENV-manipulations"><span>Simple ENV manipulations</span></a></li><li><a class="tocitem" href="#Multifile-configuration"><span>Multifile configuration</span></a></li><li><a class="tocitem" href="#Templating-configuration"><span>Templating configuration</span></a></li><li><a class="tocitem" href="#Using-IO-objects"><span>Using <code>IO</code> objects</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Arkoniak/ConfigEnv.jl/blob/master/docs/src/scenarios.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><p>In this section you can find different scenarios of various complexity, which shows how to utilize features of <code>ConfigEnv.jl</code>.</p><h2 id="Simple-ENV-manipulations"><a class="docs-heading-anchor" href="#Simple-ENV-manipulations">Simple ENV manipulations</a><a id="Simple-ENV-manipulations-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-ENV-manipulations" title="Permalink"></a></h2><p>If the package that you are using provides support for environmental variables, than all you have to do is write proper <code>.env</code> and populate <code>ENV</code> with <code>dotenv</code> function.</p><p>For example, here is how one can setup and use <code>Telegram.jl</code> functions</p><p>Configure <code>.env</code></p><pre><code class="nohighlight"># .env
+TELEGRAM_BOT_TOKEN = &lt;YOUR TELEGRAM BOT TOKEN&gt;
+TELEGRAM_BOT_CHAT_ID = &lt;YOUR TELEGRAM CHAT ID&gt;</code></pre><p>and use it in an application</p><pre><code class="language-julia">using Telegram, Telegram.API
+using ConfigEnv
+
+dotenv()
+
+sendMessage(text = &quot;Hello, world!&quot;) # uses TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_CHAT_ID</code></pre><h2 id="Multifile-configuration"><a class="docs-heading-anchor" href="#Multifile-configuration">Multifile configuration</a><a id="Multifile-configuration-1"></a><a class="docs-heading-anchor-permalink" href="#Multifile-configuration" title="Permalink"></a></h2><p>One can use merge feature to factor out repeating parts of environment configuration. For example, one can use the following file file structure</p><pre><code class="nohighlight">/
+  .root_env
+  dir1/
+    .env
+    file1.jl
+  dir2/
+    .env
+    file2.jl</code></pre><p>In this case <code>.root_env</code> can contain</p><pre><code class="nohighlight">HOST = localhost
+PORT = 1234</code></pre><p>and <code>.env</code> in <code>dir1</code> can be</p><pre><code class="nohighlight">USER = FOO
+PASSWORD = BAR</code></pre><p>Then <code>file1.jl</code> can use the following construction</p><pre><code class="language-julia">using ConfigEnv
+
+dotenv(&quot;.env&quot;, &quot;../.root_env&quot;)</code></pre><p>As a result, all four variables are set in the environment. By using different user/password in <code>.env</code> of <code>dir2</code> one can obtain directory dependent environments without repeating <code>HOST</code> and <code>PORT</code> values.</p><h2 id="Templating-configuration"><a class="docs-heading-anchor" href="#Templating-configuration">Templating configuration</a><a id="Templating-configuration-1"></a><a class="docs-heading-anchor-permalink" href="#Templating-configuration" title="Permalink"></a></h2><p>Expanding on the previous example, imagine that you have different user/password pairs for production and testing environments. Than you can organise your <code>.env</code> files as follows</p><pre><code class="nohighlight"># .root_env
+USER_PRODUCTION = FOO
+USER_TEST = TEST
+
+PASSWORD_PRODUCTION = BAR
+PASSWORD_TEST = 123
+
+USER = ${USER_${ENVIR}}
+PASSWORD = ${PASSWORD_${ENVIR}}</code></pre><pre><code class="nohighlight"># dir1/.env
+ENVIR = PRODUCTION</code></pre><p>Then in your <code>file1.jl</code> you can get the following</p><pre><code class="language-julia">using ConfigEnv
+
+dotenv(&quot;../.root_env&quot;, &quot;.env&quot;)
+
+ENV[&quot;USER&quot;]     # FOO
+ENV[&quot;PASSWORD&quot;] # BAR</code></pre><p>So variables <code>USER</code> and <code>PASWORD</code> will be set according to the value of <code>ENVIR</code>.</p><h2 id="Using-IO-objects"><a class="docs-heading-anchor" href="#Using-IO-objects">Using <code>IO</code> objects</a><a id="Using-IO-objects-1"></a><a class="docs-heading-anchor-permalink" href="#Using-IO-objects" title="Permalink"></a></h2><p>One can even go further and use templates together with <code>IO</code> objects to dynamically update application configuration. For example, if application looks like</p><pre><code class="nohighlight">/
+  .env
+  app.jl</code></pre><p>with <code>.env</code> similar to the previous example</p><pre><code class="nohighlight">USER_PRODUCTION = FOO
+USER_TEST = TEST
+
+PASSWORD_PRODUCTION = BAR
+PASSWORD_TEST = 123
+
+USER = ${USER_${ENVIR}}
+PASSWORD = ${PASSWORD_${ENVIR}}</code></pre><p>and there is a <code>.env</code></p><pre><code class="nohighlight">ENVIR = PRODUCTION</code></pre><p>located on some server in local network, then one can use the following construction in <code>app.jl</code></p><pre><code class="language-julia">using ConfigEnv
+using HTTP
+
+dotenv(IOBuffer(HTTP.get(&quot;http://127.0.0.1/.env&quot;).body), &quot;.env&quot;)
+
+ENV[&quot;USER&quot;]     # FOO
+ENV[&quot;PASSWORD&quot;] # BAR</code></pre><p>So it is possible to change application mode from <code>production</code> to <code>test</code>, just by changing value of the <code>.env</code> file on server.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usage/">« Usage</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 21 April 2021 13:31">Wednesday 21 April 2021</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
